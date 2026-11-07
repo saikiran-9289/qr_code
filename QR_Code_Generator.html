@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator - github.com/saikiran-9289</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- QRious Library for reliable Canvas QR Code generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom subtle checkerboard pattern for transparent/light backgrounds preview */
+        .qr-preview-bg {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+        .dark .qr-preview-bg {
+            background-image: radial-gradient(#334155 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="w-full border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-slate-900 text-white rounded-xl shadow-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-slate-900">QR Studio</h1>
+                    <p class="text-xs text-slate-500">High-Resolution Scannable QR Generator</p>
+                </div>
+            </div>
+            <a href="https://github.com/saikiran-9289" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-2 text-sm font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3.5 py-2 rounded-xl transition-colors">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+                </svg>
+                <span>saikiran-9289</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center justify-center p-4 sm:p-6 md:p-10">
+        <div class="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
+            
+            <!-- Left Column: Customization Controls -->
+            <div class="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-6">
+                <div class="space-y-6">
+                    <div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 mb-2">
+                            Ready to Scan
+                        </span>
+                        <h2 class="text-2xl font-bold text-slate-900">Configure QR Code</h2>
+                        <p class="text-sm text-slate-500 mt-1">Customize the destination link, appearance, and error correction level.</p>
+                    </div>
+
+                    <!-- URL / Text Input -->
+                    <div class="space-y-2">
+                        <label for="qr-input" class="block text-sm font-semibold text-slate-700">
+                            Destination URL or Text
+                        </label>
+                        <div class="relative flex items-center">
+                            <input 
+                                type="text" 
+                                id="qr-input" 
+                                value="https://github.com/saikiran-9289"
+                                placeholder="Enter URL or text..."
+                                class="w-full pl-4 pr-24 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+                            />
+                            <button 
+                                id="reset-url-btn"
+                                title="Reset to GitHub link"
+                                class="absolute right-2 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-200/70 hover:bg-slate-200 rounded-lg transition-colors"
+                            >
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Preset Themes -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-slate-700">Quick Color Presets</label>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="applyPreset('#0f172a', '#ffffff')" class="flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-400 text-xs font-medium transition-all bg-white shadow-sm">
+                                <span class="w-3.5 h-3.5 rounded-full bg-slate-900 border border-slate-300"></span>
+                                <span>GitHub Dark</span>
+                            </button>
+                            <button type="button" onclick="applyPreset('#000000', '#ffffff')" class="flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-400 text-xs font-medium transition-all bg-white shadow-sm">
+                                <span class="w-3.5 h-3.5 rounded-full bg-black border border-slate-300"></span>
+                                <span>Classic Black</span>
+                            </button>
+                            <button type="button" onclick="applyPreset('#4f46e5', '#ffffff')" class="flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-400 text-xs font-medium transition-all bg-white shadow-sm">
+                                <span class="w-3.5 h-3.5 rounded-full bg-indigo-600"></span>
+                                <span>Indigo</span>
+                            </button>
+                            <button type="button" onclick="applyPreset('#047857', '#ecfdf5')" class="flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-400 text-xs font-medium transition-all bg-white shadow-sm">
+                                <span class="w-3.5 h-3.5 rounded-full bg-emerald-700"></span>
+                                <span>Emerald</span>
+                            </button>
+                            <button type="button" onclick="applyPreset('#ffffff', '#0f172a')" class="flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-400 text-xs font-medium transition-all bg-slate-900 text-white shadow-sm">
+                                <span class="w-3.5 h-3.5 rounded-full bg-white"></span>
+                                <span>Inverted</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Color Pickers -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Foreground Color -->
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between">
+                            <div>
+                                <label for="fg-color" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Foreground</label>
+                                <span id="fg-hex" class="text-sm font-mono font-medium text-slate-800 mt-0.5 block">#0F172A</span>
+                            </div>
+                            <input 
+                                type="color" 
+                                id="fg-color" 
+                                value="#0f172a"
+                                class="w-10 h-10 rounded-xl cursor-pointer border-0 bg-transparent p-0"
+                            />
+                        </div>
+
+                        <!-- Background Color -->
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between">
+                            <div>
+                                <label for="bg-color" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Background</label>
+                                <span id="bg-hex" class="text-sm font-mono font-medium text-slate-800 mt-0.5 block">#FFFFFF</span>
+                            </div>
+                            <input 
+                                type="color" 
+                                id="bg-color" 
+                                value="#ffffff"
+                                class="w-10 h-10 rounded-xl cursor-pointer border-0 bg-transparent p-0"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Advanced Settings: Error Correction & Padding -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label for="qr-level" class="block text-xs font-semibold text-slate-700">
+                                    Error Correction
+                                </label>
+                                <span id="ec-auto-badge" class="text-[10px] font-semibold px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded border border-indigo-100">
+                                    Locked to H for Logo
+                                </span>
+                            </div>
+                            <select id="qr-level" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 disabled:opacity-75 disabled:cursor-not-allowed">
+                                <option value="L">Low (7% recovery)</option>
+                                <option value="M">Medium (15% recovery)</option>
+                                <option value="Q">Quartile (25% recovery)</option>
+                                <option value="H" selected>High (30% - Best Scannability)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="qr-padding" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Quiet Zone (Margin)
+                            </label>
+                            <select id="qr-padding" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                                <option value="12">Compact (12px)</option>
+                                <option value="25" selected>Standard (25px)</option>
+                                <option value="45">Wide (45px)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Center Logo / Image Customization Section -->
+                    <div class="pt-4 border-t border-slate-200/80 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                    <span>Center Logo / Image</span>
+                                    <span class="text-[11px] font-medium px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">Scannable</span>
+                                </h3>
+                                <p class="text-xs text-slate-500">Embed an icon or custom avatar in the middle of your QR code.</p>
+                            </div>
+                            <button 
+                                type="button" 
+                                id="clear-logo-btn" 
+                                class="text-xs font-medium text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1.5 rounded-lg transition-colors"
+                            >
+                                Remove Logo
+                            </button>
+                        </div>
+
+                        <!-- Preset Logo Selector Pills -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <!-- No Logo -->
+                            <button type="button" data-logo-preset="none" class="logo-preset-btn flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                </svg>
+                                <span>None</span>
+                            </button>
+
+                            <!-- GitHub Octocat (Default Active) -->
+                            <button type="button" data-logo-preset="github" class="logo-preset-btn flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border-2 border-slate-900 bg-slate-900 text-white text-xs font-semibold transition-all shadow-sm">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+                                </svg>
+                                <span>GitHub</span>
+                            </button>
+
+                            <!-- Code / Dev Icon -->
+                            <button type="button" data-logo-preset="code" class="logo-preset-btn flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all">
+                                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                </svg>
+                                <span>Dev Icon</span>
+                            </button>
+
+                            <!-- Upload Custom Image Trigger -->
+                            <button type="button" id="trigger-upload-btn" data-logo-preset="custom" class="logo-preset-btn flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all">
+                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
+                                <span>Upload</span>
+                            </button>
+                        </div>
+
+                        <!-- Drag and Drop / File Input Zone -->
+                        <div id="upload-dropzone" class="relative border-2 border-dashed border-slate-200 hover:border-slate-400 bg-slate-50/70 rounded-2xl p-3.5 text-center transition-all cursor-pointer">
+                            <input type="file" id="logo-file-input" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif" class="hidden" />
+                            <div class="flex items-center justify-center space-x-3">
+                                <div id="uploaded-thumb-wrapper" class="hidden w-10 h-10 rounded-xl bg-white border border-slate-200 p-1 flex-shrink-0 overflow-hidden shadow-sm">
+                                    <img id="uploaded-thumb" src="" alt="Custom Logo" class="w-full h-full object-contain rounded-lg" />
+                                </div>
+                                <div class="text-left">
+                                    <p id="upload-status-text" class="text-xs font-semibold text-slate-700">Click or drag & drop a custom image here</p>
+                                    <p class="text-[11px] text-slate-400">Supports PNG, JPG, SVG, or WebP (Square images work best)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Center Logo Styling Controls (Size, Border Padding, Shape) -->
+                        <div id="logo-controls-panel" class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <!-- Logo Size Slider -->
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold mb-1.5">
+                                        <label for="logo-size" class="text-slate-700">Logo Size</label>
+                                        <span id="logo-size-label" class="font-mono text-slate-500">21%</span>
+                                    </div>
+                                    <input 
+                                        type="range" 
+                                        id="logo-size" 
+                                        min="12" 
+                                        max="26" 
+                                        value="21" 
+                                        class="w-full accent-slate-900 cursor-pointer"
+                                    />
+                                </div>
+
+                                <!-- Logo Quiet Zone / Border Padding Slider -->
+                                <div>
+                                    <div class="flex justify-between text-xs font-semibold mb-1.5">
+                                        <label for="logo-border" class="text-slate-700">Logo Border</label>
+                                        <span id="logo-border-label" class="font-mono text-slate-500">14px</span>
+                                    </div>
+                                    <input 
+                                        type="range" 
+                                        id="logo-border" 
+                                        min="0" 
+                                        max="32" 
+                                        value="14" 
+                                        class="w-full accent-slate-900 cursor-pointer"
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Logo Shape Selector -->
+                            <div class="flex items-center justify-between pt-1">
+                                <span class="text-xs font-semibold text-slate-700">Logo Frame Shape</span>
+                                <div class="inline-flex rounded-xl bg-slate-200/70 p-1">
+                                    <button type="button" data-shape="square" class="logo-shape-btn px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+                                        Square
+                                    </button>
+                                    <button type="button" data-shape="rounded" class="logo-shape-btn px-3 py-1 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all">
+                                        Rounded
+                                    </button>
+                                    <button type="button" data-shape="circle" class="logo-shape-btn px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+                                        Circle
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contrast Warning Banner (Hidden unless low contrast detected) -->
+                <div id="contrast-warning" class="hidden p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-start space-x-2.5 text-amber-800 text-xs">
+                    <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <span><strong>Low contrast detected:</strong> Make sure the foreground and background colors have enough contrast so phone cameras can easily scan the code.</span>
+                </div>
+            </div>
+
+            <!-- Right Column: QR Preview & Action Buttons -->
+            <div class="lg:col-span-5 bg-slate-50/70 border-t lg:border-t-0 lg:border-l border-slate-100 p-6 sm:p-8 flex flex-col items-center justify-between qr-preview-bg">
+                
+                <div class="w-full flex items-center justify-between mb-4">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Live Preview</span>
+                    <span class="text-xs font-mono text-slate-400">1000 × 1000 px</span>
+                </div>
+
+                <!-- QR Canvas Container -->
+                <div class="my-auto flex flex-col items-center w-full">
+                    <div class="p-4 bg-white rounded-3xl shadow-lg shadow-slate-300/50 border border-slate-200/80 transition-transform duration-200 hover:scale-[1.01]">
+                        <!-- High-res canvas scaled gracefully with CSS -->
+                        <canvas id="qr-canvas" class="w-56 h-56 sm:w-64 sm:h-64 rounded-2xl block"></canvas>
+                    </div>
+
+                    <!-- Dynamic Target Link Pill -->
+                    <div class="mt-4 max-w-full px-3.5 py-1.5 bg-white/90 backdrop-blur border border-slate-200/80 rounded-full shadow-sm flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="preview-url-label" class="text-xs font-mono text-slate-600 truncate max-w-[230px]">https://github.com/saikiran-9289</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="w-full space-y-2.5 mt-6">
+                    <button 
+                        id="download-btn"
+                        class="w-full py-3.5 px-5 bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-semibold text-sm rounded-xl shadow-md shadow-slate-900/10 flex items-center justify-center space-x-2 transition-all"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        <span>Download High-Res PNG</span>
+                    </button>
+
+                    <button 
+                        id="copy-link-btn"
+                        class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-xl border border-slate-200 flex items-center justify-center space-x-1.5 transition-colors"
+                    >
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <span id="copy-btn-text">Copy Target Link</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center space-x-2.5 text-sm font-medium">
+        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span id="toast-message">Action successful!</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-5 text-xs text-slate-400">
+        Point your phone camera at the QR code to test scannability immediately.
+    </footer>
+
+    <!-- Application Script -->
+    <script>
+        // Default Configuration
+        const DEFAULT_URL = 'https://github.com/saikiran-9289';
+        const HIGH_RES_SIZE = 1000; // 1000x1000px for crisp printing & high-DPI displays
+
+        // DOM Elements
+        const qrInput = document.getElementById('qr-input');
+        const resetUrlBtn = document.getElementById('reset-url-btn');
+        const fgColorInput = document.getElementById('fg-color');
+        const bgColorInput = document.getElementById('bg-color');
+        const fgHexLabel = document.getElementById('fg-hex');
+        const bgHexLabel = document.getElementById('bg-hex');
+        const qrLevelSelect = document.getElementById('qr-level');
+        const ecAutoBadge = document.getElementById('ec-auto-badge');
+        const qrPaddingSelect = document.getElementById('qr-padding');
+        const qrCanvas = document.getElementById('qr-canvas');
+        const previewUrlLabel = document.getElementById('preview-url-label');
+        const downloadBtn = document.getElementById('download-btn');
+        const copyLinkBtn = document.getElementById('copy-link-btn');
+        const copyBtnText = document.getElementById('copy-btn-text');
+        const contrastWarning = document.getElementById('contrast-warning');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        // Logo DOM Elements
+        const presetButtons = document.querySelectorAll('.logo-preset-btn');
+        const clearLogoBtn = document.getElementById('clear-logo-btn');
+        const triggerUploadBtn = document.getElementById('trigger-upload-btn');
+        const uploadDropzone = document.getElementById('upload-dropzone');
+        const logoFileInput = document.getElementById('logo-file-input');
+        const uploadedThumbWrapper = document.getElementById('uploaded-thumb-wrapper');
+        const uploadedThumb = document.getElementById('uploaded-thumb');
+        const uploadStatusText = document.getElementById('upload-status-text');
+        const logoControlsPanel = document.getElementById('logo-controls-panel');
+        const logoSizeSlider = document.getElementById('logo-size');
+        const logoSizeLabel = document.getElementById('logo-size-label');
+        const logoBorderSlider = document.getElementById('logo-border');
+        const logoBorderLabel = document.getElementById('logo-border-label');
+        const shapeButtons = document.querySelectorAll('.logo-shape-btn');
+
+        // Center Logo State
+        let currentLogoMode = 'github'; // 'none' | 'github' | 'code' | 'custom'
+        let currentLogoShape = 'rounded'; // 'square' | 'rounded' | 'circle'
+        let customLogoImage = null; // Loaded Image object for custom uploads
+
+        // Offscreen buffer canvas so QRious renders cleanly before we composite the center logo
+        const bufferCanvas = document.createElement('canvas');
+        let qr = new QRious({
+            element: bufferCanvas,
+            value: DEFAULT_URL,
+            size: HIGH_RES_SIZE,
+            level: 'H',
+            foreground: '#0f172a',
+            background: '#ffffff',
+            padding: 25
+        });
+
+        // Built-in SVG Icon Generators (dynamically tinted to match QR foreground/background)
+        function createPresetLogoDataURL(type, fgColor, bgColor) {
+            if (type === 'github') {
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="256" height="256">
+                    <rect width="24" height="24" rx="5" fill="${fgColor}"/>
+                    <path fill="${bgColor}" fill-rule="evenodd" clip-rule="evenodd" d="M12 3.2c-4.86 0-8.8 3.94-8.8 8.8 0 3.89 2.52 7.19 6.02 8.35.44.08.6-.19.6-.42 0-.21-.01-.76-.01-1.5-2.45.53-2.96-1.18-2.96-1.18-.4-1.02-.98-1.29-.98-1.29-.8-.55.06-.54.06-.54.88.06 1.35.91 1.35.91.78 1.35 2.06.96 2.56.73.08-.57.31-.96.56-1.18-1.95-.22-4.01-.98-4.01-4.35 0-.96.34-1.75.9-2.36-.09-.22-.39-1.12.09-2.33 0 0 .74-.24 2.42.9a8.4 8.4 0 014.4 0c1.68-1.14 2.42-.9 2.42-.9.48 1.21.18 2.11.09 2.33.56.61.9 1.4.9 2.36 0 3.38-2.06 4.13-4.02 4.35.32.27.6.81.6 1.63 0 1.18-.01 2.13-.01 2.42 0 .23.16.51.61.42A8.81 8.81 0 0020.8 12c0-4.86-3.94-8.8-8.8-8.8z"/>
+                </svg>`;
+                return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+            }
+            if (type === 'code') {
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="256" height="256">
+                    <rect width="24" height="24" rx="5" fill="${fgColor}"/>
+                    <path stroke="${bgColor}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" d="M9.5 16.5L5 12l4.5-4.5m5 9L19 12l-4.5-4.5"/>
+                </svg>`;
+                return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+            }
+            return null;
+        }
+
+        // Helper: Draw a rounded rectangle or circle path on a 2D canvas context
+        function traceShapePath(ctx, x, y, size, shape) {
+            ctx.beginPath();
+            if (shape === 'circle') {
+                ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+            } else if (shape === 'rounded') {
+                const r = size * 0.22;
+                ctx.moveTo(x + r, y);
+                ctx.arcTo(x + size, y, x + size, y + size, r);
+                ctx.arcTo(x + size, y + size, x, y + size, r);
+                ctx.arcTo(x, y + size, x, y, r);
+                ctx.arcTo(x, y, x + size, y, r);
+            } else {
+                ctx.rect(x, y, size, size);
+            }
+            ctx.closePath();
+        }
+
+        // Helper: Calculate relative luminance for contrast check
+        function getLuminance(hex) {
+            const rgb = parseInt(hex.slice(1), 16);
+            const r = ((rgb >> 16) & 0xff) / 255;
+            const g = ((rgb >>  8) & 0xff) / 255;
+            const b = ((rgb >>  0) & 0xff) / 255;
+            const a = [r, g, b].map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+            return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+        }
+
+        // Helper: Check color contrast ratio
+        function checkContrast(fgHex, bgHex) {
+            const lum1 = getLuminance(fgHex);
+            const lum2 = getLuminance(bgHex);
+            const brightest = Math.max(lum1, lum2);
+            const darkest = Math.min(lum1, lum2);
+            const ratio = (brightest + 0.05) / (darkest + 0.05);
+            if (ratio < 3.0) {
+                contrastWarning.classList.remove('hidden');
+            } else {
+                contrastWarning.classList.add('hidden');
+            }
+        }
+
+        // Update UI states for preset buttons and controls
+        function syncLogoControlsUI() {
+            const hasLogo = currentLogoMode !== 'none';
+            
+            // Highlight active preset button
+            presetButtons.forEach(btn => {
+                const preset = btn.getAttribute('data-logo-preset');
+                if (preset === currentLogoMode) {
+                    btn.className = 'logo-preset-btn flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border-2 border-slate-900 bg-slate-900 text-white text-xs font-semibold transition-all shadow-sm';
+                } else {
+                    btn.className = 'logo-preset-btn flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all';
+                }
+            });
+
+            // Show/hide remove button & controls
+            clearLogoBtn.style.display = hasLogo ? 'inline-block' : 'none';
+            logoControlsPanel.style.opacity = hasLogo ? '1' : '0.45';
+            logoControlsPanel.style.pointerEvents = hasLogo ? 'auto' : 'none';
+
+            // Lock Error Correction to High ('H') whenever a center logo is active
+            if (hasLogo) {
+                qrLevelSelect.value = 'H';
+                qrLevelSelect.disabled = true;
+                ecAutoBadge.classList.remove('hidden');
+            } else {
+                qrLevelSelect.disabled = false;
+                ecAutoBadge.classList.add('hidden');
+            }
+
+            // Update shape buttons UI
+            shapeButtons.forEach(btn => {
+                const s = btn.getAttribute('data-shape');
+                if (s === currentLogoShape) {
+                    btn.className = 'logo-shape-btn px-3 py-1 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all';
+                } else {
+                    btn.className = 'logo-shape-btn px-3 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all';
+                }
+            });
+        }
+
+        // Draw Center Logo onto main visible qrCanvas
+        function compositeLogoOnCanvas(logoImg, bgColor) {
+            const ctx = qrCanvas.getContext('2d');
+            const sizePercent = parseInt(logoSizeSlider.value, 10) / 100;
+            const borderPx = parseInt(logoBorderSlider.value, 10);
+
+            const logoSize = Math.round(HIGH_RES_SIZE * sizePercent);
+            const totalBoxSize = logoSize + borderPx * 2;
+            const boxX = Math.round((HIGH_RES_SIZE - totalBoxSize) / 2);
+            const boxY = Math.round((HIGH_RES_SIZE - totalBoxSize) / 2);
+            const logoX = Math.round((HIGH_RES_SIZE - logoSize) / 2);
+            const logoY = Math.round((HIGH_RES_SIZE - logoSize) / 2);
+
+            // 1. Draw Background Quiet-Zone Border around logo
+            if (borderPx > 0) {
+                ctx.save();
+                traceShapePath(ctx, boxX, boxY, totalBoxSize, currentLogoShape);
+                ctx.fillStyle = bgColor;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // 2. Clip and Draw the Center Image with aspect-ratio center-crop (object-fit: cover)
+            ctx.save();
+            traceShapePath(ctx, logoX, logoY, logoSize, currentLogoShape);
+            ctx.clip();
+
+            // Fill subtle background inside logo frame in case of transparent PNGs
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(logoX, logoY, logoSize, logoSize);
+
+            const imgW = logoImg.naturalWidth || logoImg.width || 256;
+            const imgH = logoImg.naturalHeight || logoImg.height || 256;
+            const scale = Math.max(logoSize / imgW, logoSize / imgH);
+            const sw = logoSize / scale;
+            const sh = logoSize / scale;
+            const sx = (imgW - sw) / 2;
+            const sy = (imgH - sh) / 2;
+
+            ctx.drawImage(logoImg, sx, sy, sw, sh, logoX, logoY, logoSize, logoSize);
+            ctx.restore();
+        }
+
+        // Core Function: Update QR Code & Composite Center Logo
+        let renderToken = 0;
+        function updateQRCode() {
+            const currentToken = ++renderToken;
+            syncLogoControlsUI();
+
+            const rawValue = qrInput.value.trim();
+            const targetValue = rawValue.length > 0 ? rawValue : DEFAULT_URL;
+            const fgColor = fgColorInput.value;
+            const bgColor = bgColorInput.value;
+            const level = currentLogoMode !== 'none' ? 'H' : qrLevelSelect.value;
+            const padding = parseInt(qrPaddingSelect.value, 10);
+
+            // Update Labels
+            fgHexLabel.textContent = fgColor.toUpperCase();
+            bgHexLabel.textContent = bgColor.toUpperCase();
+            previewUrlLabel.textContent = targetValue;
+            logoSizeLabel.textContent = `${logoSizeSlider.value}%`;
+            logoBorderLabel.textContent = `${logoBorderSlider.value}px`;
+
+            // 1. Render base QR code into offscreen bufferCanvas
+            qr.set({
+                value: targetValue,
+                foreground: fgColor,
+                background: bgColor,
+                level: level,
+                padding: padding,
+                size: HIGH_RES_SIZE
+            });
+
+            // 2. Copy base QR onto visible qrCanvas
+            qrCanvas.width = HIGH_RES_SIZE;
+            qrCanvas.height = HIGH_RES_SIZE;
+            const ctx = qrCanvas.getContext('2d');
+            ctx.clearRect(0, 0, HIGH_RES_SIZE, HIGH_RES_SIZE);
+            ctx.drawImage(bufferCanvas, 0, 0);
+
+            checkContrast(fgColor, bgColor);
+
+            // 3. If a center logo is active, draw it on top
+            if (currentLogoMode === 'none') {
+                return;
+            }
+
+            if (currentLogoMode === 'custom') {
+                if (customLogoImage) {
+                    compositeLogoOnCanvas(customLogoImage, bgColor);
+                }
+                return;
+            }
+
+            // Preset SVG Logo ('github' or 'code')
+            const svgDataUrl = createPresetLogoDataURL(currentLogoMode, fgColor, bgColor);
+            if (svgDataUrl) {
+                const img = new Image();
+                img.onload = () => {
+                    if (currentToken !== renderToken) return;
+                    compositeLogoOnCanvas(img, bgColor);
+                };
+                img.src = svgDataUrl;
+            }
+        }
+
+        // Handle Custom File Upload (via Input or Drag-and-Drop)
+        function handleCustomLogoFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                showToast('Please select a valid image file (PNG, JPG, SVG, WebP)');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                const img = new Image();
+                img.onload = () => {
+                    customLogoImage = img;
+                    currentLogoMode = 'custom';
+                    uploadedThumb.src = dataUrl;
+                    uploadedThumbWrapper.classList.remove('hidden');
+                    uploadStatusText.textContent = file.name.length > 28 ? file.name.slice(0, 25) + '...' : file.name;
+                    updateQRCode();
+                    showToast('Center image applied!');
+                };
+                img.src = dataUrl;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Preset Logo Button Click Listeners
+        presetButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const preset = btn.getAttribute('data-logo-preset');
+                if (preset === 'custom') {
+                    if (customLogoImage) {
+                        currentLogoMode = 'custom';
+                        updateQRCode();
+                    } else {
+                        logoFileInput.click();
+                    }
+                } else {
+                    currentLogoMode = preset;
+                    updateQRCode();
+                }
+            });
+        });
+
+        // Remove Logo Button
+        clearLogoBtn.addEventListener('click', () => {
+            currentLogoMode = 'none';
+            updateQRCode();
+            showToast('Center logo removed');
+        });
+
+        // Upload Dropzone Click & Drag-and-Drop Listeners
+        uploadDropzone.addEventListener('click', () => logoFileInput.click());
+        logoFileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleCustomLogoFile(e.target.files[0]);
+            }
+        });
+
+        uploadDropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadDropzone.classList.add('border-slate-900', 'bg-slate-100');
+        });
+        uploadDropzone.addEventListener('dragleave', () => {
+            uploadDropzone.classList.remove('border-slate-900', 'bg-slate-100');
+        });
+        uploadDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadDropzone.classList.remove('border-slate-900', 'bg-slate-100');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleCustomLogoFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        // Logo Sliders & Shape Listeners
+        logoSizeSlider.addEventListener('input', updateQRCode);
+        logoBorderSlider.addEventListener('input', updateQRCode);
+        shapeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentLogoShape = btn.getAttribute('data-shape');
+                updateQRCode();
+            });
+        });
+
+        // Apply quick color presets
+        window.applyPreset = function(fg, bg) {
+            fgColorInput.value = fg;
+            bgColorInput.value = bg;
+            updateQRCode();
+        };
+
+        // Show notification toast
+        let toastTimeout;
+        function showToast(msg) {
+            toastMessage.textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2600);
+        }
+
+        // Event Listeners for real-time updates
+        qrInput.addEventListener('input', updateQRCode);
+        fgColorInput.addEventListener('input', updateQRCode);
+        bgColorInput.addEventListener('input', updateQRCode);
+        qrLevelSelect.addEventListener('change', updateQRCode);
+        qrPaddingSelect.addEventListener('change', updateQRCode);
+
+        // Reset button
+        resetUrlBtn.addEventListener('click', () => {
+            qrInput.value = DEFAULT_URL;
+            updateQRCode();
+            showToast('Reset to GitHub profile URL');
+        });
+
+        // Download High-Res PNG
+        downloadBtn.addEventListener('click', () => {
+            try {
+                const dataUrl = qrCanvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                
+                // Generate clean filename from input
+                const cleanName = (qrInput.value.trim() || 'saikiran-9289')
+                    .replace(/^https?:\/\//i, '')
+                    .replace(/[^a-z0-9-_]/gi, '_')
+                    .toLowerCase()
+                    .slice(0, 40);
+
+                link.download = `qr_${cleanName}.png`;
+                link.href = dataUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('High-Res PNG downloaded!');
+            } catch (err) {
+                console.error('Failed to download PNG:', err);
+            }
+        });
+
+        // Copy Link to Clipboard (using fallback-friendly method for iframe compatibility)
+        copyLinkBtn.addEventListener('click', () => {
+            const textToCopy = qrInput.value.trim() || DEFAULT_URL;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                copyBtnText.textContent = 'Copied!';
+                showToast('Target URL copied to clipboard!');
+                setTimeout(() => {
+                    copyBtnText.textContent = 'Copy Target Link';
+                }, 2000);
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+            document.body.removeChild(tempInput);
+        });
+
+        // Initial render on window load
+        window.addEventListener('DOMContentLoaded', updateQRCode);
+    </script>
+</body>
+</html>
